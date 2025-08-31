@@ -65,10 +65,22 @@ def draw_tubes(tubes_num, tube_cols):
     for i in range(tubes_per_row):
         for j in range(len(tube_cols[i])):
             pygame.draw.rect(screen, color_choices[tube_cols[i][j]], [5 + spacing * i, 200 - (50 * j), 65, 50], 0, 3)
-        box = pygame.draw.rect(screen, 'blue', [5 + spacing * i, 50, 65, 200], 5, 5)
+        # Draw tube as a rectangle with no top border (open top)
+        # Instead of: pygame.draw.rect(screen, 'blue', [x, y, w, h], 5, 5)
+        # Draw left, right, and bottom borders only
+        tube_x = 5 + spacing * i
+        tube_y = 50
+        tube_w = 65
+        tube_h = 200
+        # Left border
+        pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
+        # Right border
+        pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
+        # Bottom border
+        pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
         # Highlight selected tube
         if select_rect == i:
-            pygame.draw.rect(screen, 'green', [5 + spacing * i, 50, 65, 200], 3, 5)
+            pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
         # Draw Pop button if a tube is selected and not yet popped
         if selected and pop_push_mode is None and select_rect == i:
             pop_button_rect = pygame.draw.rect(screen, 'gray', [5 + spacing * i + 80, 100, 80, 40])
@@ -79,46 +91,69 @@ def draw_tubes(tubes_num, tube_cols):
             push_button_rect = pygame.draw.rect(screen, 'gray', [5 + spacing * i + 80, 160, 80, 40])
             push_text = font.render('Push', True, 'black')
             screen.blit(push_text, (5 + spacing * i + 95, 170))
+        box = pygame.Rect(tube_x, tube_y, tube_w, tube_h)  # <-- ADD THIS LINE
         tube_boxes.append(box)
     if offset:
         for i in range(tubes_per_row - 1):
             for j in range(len(tube_cols[i + tubes_per_row])):
                 pygame.draw.rect(screen, color_choices[tube_cols[i + tubes_per_row][j]],
                                  [(spacing * 0.5) + 5 + spacing * i, 450 - (50 * j), 65, 50], 0, 3)
-            box = pygame.draw.rect(screen, 'blue', [(spacing * 0.5) + 5 + spacing * i, 300, 65, 200], 5, 5)
+            # Draw tube as a rectangle with no top border (open top)
+            tube_x = (spacing * 0.5) + 5 + spacing * i
+            tube_y = 300
+            tube_w = 65
+            tube_h = 200
+            # Left border
+            pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
+            # Right border
+            pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
+            # Bottom border
+            pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
             # Highlight selected tube
             if select_rect == i + tubes_per_row:
-                pygame.draw.rect(screen, 'green', [(spacing * 0.5) + 5 + spacing * i, 300, 65, 200], 3, 5)
+                pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
             # Draw Pop button if a tube is selected and not yet popped
             if selected and pop_push_mode is None and select_rect == i + tubes_per_row:
-                pop_button_rect = pygame.draw.rect(screen, 'gray', [(spacing * 0.5) + 5 + spacing * i + 80, 100, 80, 40])
+                pop_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + 80, 100, 80, 40])
                 pop_text = font.render('Pop', True, 'black')
-                screen.blit(pop_text, ((spacing * 0.5) + 5 + spacing * i + 100, 110))
+                screen.blit(pop_text, (tube_x + 100, 110))
             # Draw Push button if in push mode and this is the destination tube
             if pop_push_mode == 'push' and push_tube_index == i + tubes_per_row:
-                push_button_rect = pygame.draw.rect(screen, 'gray', [(spacing * 0.5) + 5 + spacing * i + 80, 160, 80, 40])
+                push_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + 80, 160, 80, 40])
                 push_text = font.render('Push', True, 'black')
-                screen.blit(push_text, ((spacing * 0.5) + 5 + spacing * i + 95, 170))
+                screen.blit(push_text, (tube_x + 95, 170))
+            box = pygame.Rect(tube_x, tube_y, tube_w, tube_h)
             tube_boxes.append(box)
     else:
         for i in range(tubes_per_row):
             for j in range(len(tube_cols[i + tubes_per_row])):
                 pygame.draw.rect(screen, color_choices[tube_cols[i + tubes_per_row][j]], [5 + spacing * i,
                                                                                           450 - (50 * j), 65, 50], 0, 3)
-            box = pygame.draw.rect(screen, 'blue', [5 + spacing * i, 300, 65, 200], 5, 5)
+            # Draw tube as a rectangle with no top border (open top)
+            tube_x = 5 + spacing * i
+            tube_y = 300
+            tube_w = 65
+            tube_h = 200
+            # Left border
+            pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
+            # Right border
+            pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
+            # Bottom border
+            pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
             # Highlight selected tube
             if select_rect == i + tubes_per_row:
-                pygame.draw.rect(screen, 'green', [5 + spacing * i, 300, 65, 200], 3, 5)
+                pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
             # Draw Pop button if a tube is selected and not yet popped
             if selected and pop_push_mode is None and select_rect == i + tubes_per_row:
-                pop_button_rect = pygame.draw.rect(screen, 'gray', [5 + spacing * i + 80, 100, 80, 40])
+                pop_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + 80, 100, 80, 40])
                 pop_text = font.render('Pop', True, 'black')
-                screen.blit(pop_text, (5 + spacing * i + 100, 110))
+                screen.blit(pop_text, (tube_x + 100, 110))
             # Draw Push button if in push mode and this is the destination tube
             if pop_push_mode == 'push' and push_tube_index == i + tubes_per_row:
-                push_button_rect = pygame.draw.rect(screen, 'gray', [5 + spacing * i + 80, 160, 80, 40])
+                push_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + 80, 160, 80, 40])
                 push_text = font.render('Push', True, 'black')
-                screen.blit(push_text, (5 + spacing * i + 95, 170))
+                screen.blit(push_text, (tube_x + 95, 170))
+            box = pygame.Rect(tube_x, tube_y, tube_w, tube_h)
             tube_boxes.append(box)
     return tube_boxes
 
@@ -238,8 +273,8 @@ while run:
     if win:
         victory_text = font.render('You Won! Press Enter for a new board!', True, 'white')
         screen.blit(victory_text, (30, 265))
-    restart_text = font.render('Stuck? Space-Restart, Enter-New Board!', True, 'white')
-    screen.blit(restart_text, (10, 10))
+    #restart_text = font.render('Stuck? Space-Restart, Enter-New Board!', True, 'white')
+    #screen.blit(restart_text, (10, 10))
 
     # display all drawn items on screen, exit pygame if run == False
     pygame.display.flip()
