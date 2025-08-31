@@ -1,167 +1,246 @@
-import pygame
-import sys
+# import critical modules - random for board generation, copy for being able to restart, pygame for framework
+import copy
 import random
-from math import *
+import pygame
 
-
-class Balloon:
-    def __init__(self, speed):
-        self.a = random.randint(30, 40)
-        self.b = self.a + random.randint(0, 10)
-        self.x = random.randrange(margin, width - self.a - margin)
-        self.y = height - lowerBound
-        self.angle = 90
-        self.speed = -speed
-        self.proPool= [-1, -1, -1, 0, 0, 0, 0, 1, 1, 1]
-        self.length = random.randint(50, 100)
-        self.color = random.choice([red, green, purple, orange, yellow, blue])
-        
-    def move(self):
-        direct = random.choice(self.proPool)
-
-        if direct == -1:
-            self.angle += -10
-        elif direct == 0:
-            self.angle += 0
-        else:
-            self.angle += 10
-
-        self.y += self.speed*sin(radians(self.angle))
-        self.x += self.speed*cos(radians(self.angle))
-
-        if (self.x + self.a > width) or (self.x < 0):
-            if self.y > height/5:
-                self.x -= self.speed*cos(radians(self.angle)) 
-            else:
-                self.reset()
-        if self.y + self.b < 0 or self.y > height + 30:
-            self.reset()
-            
-    def show(self):
-        pygame.draw.line(display, darkBlue, (self.x + self.a/2, self.y + self.b), (self.x + self.a/2, self.y + self.b + self.length))
-        pygame.draw.ellipse(display, self.color, (self.x, self.y, self.a, self.b))
-        pygame.draw.ellipse(display, self.color, (self.x + self.a/2 - 5, self.y + self.b - 3, 10, 10))
-            
-    def burst(self):
-        global score
-        pos = pygame.mouse.get_pos()
-
-        if isonBalloon(self.x, self.y, self.a, self.b, pos):
-            score += 1
-            self.reset()
-                
-    def reset(self):
-        self.a = random.randint(30, 40)
-        self.b = self.a + random.randint(0, 10)
-        self.x = random.randrange(margin, width - self.a - margin)
-        self.y = height - lowerBound 
-        self.angle = 90
-        self.speed -= 0.002
-        self.proPool = [-1, -1, -1, 0, 0, 0, 0, 1, 1, 1]
-        self.length = random.randint(50, 100)
-        self.color = random.choice([red, green, purple, orange, yellow, blue])
-
-def isonBalloon(x, y, a, b, pos):
-    if (x < pos[0] < x + a) and (y < pos[1] < y + b):
-        return True
-    else:
-        return False
-    
-def pointer():
-    pos = pygame.mouse.get_pos()
-    r = 25
-    l = 20
-    color = lightGreen
-    for i in range(noBalloon):
-        if isonBalloon(balloons[i].x, balloons[i].y, balloons[i].a, balloons[i].b, pos):
-            color = red
-    pygame.draw.ellipse(display, color, (pos[0] - r/2, pos[1] - r/2, r, r), 4)
-    pygame.draw.line(display, color, (pos[0], pos[1] - l/2), (pos[0], pos[1] - l), 4)
-    pygame.draw.line(display, color, (pos[0] + l/2, pos[1]), (pos[0] + l, pos[1]), 4)
-    pygame.draw.line(display, color, (pos[0], pos[1] + l/2), (pos[0], pos[1] + l), 4)
-    pygame.draw.line(display, color, (pos[0] - l/2, pos[1]), (pos[0] - l, pos[1]), 4)
-
-def lowerPlatform():
-    pygame.draw.rect(display, darkGray, (0, height - lowerBound, width, lowerBound))
-    
-def showScore():
-    scoreText = font.render("Balloons Bursted : " + str(score), True, white)
-    display.blit(scoreText, (150, height - lowerBound + 50))
-    
-def close():
-    pygame.quit()
-    sys.exit()
-    
-def game():
-    global score
-    loop = True
-
-    while loop:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                close()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    close()
-                if event.key == pygame.K_r:
-                    score = 0
-                    game()
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                for i in range(noBalloon):
-                    balloons[i].burst()
-
-        display.fill(lightBlue)
-        
-        for i in range(noBalloon):
-            balloons[i].show()
-
-        pointer()
-        
-        for i in range(noBalloon):
-            balloons[i].move()
-
-        
-        lowerPlatform()
-        showScore()
-        pygame.display.update()
-        clock.tick(60)
-
-
+# initialize pygame
 pygame.init()
 
-width = 700
-height = 600
+# initialize game variables
+WIDTH = 1000
+HEIGHT = 550
+screen = pygame.display.set_mode([WIDTH, HEIGHT])
+pygame.display.set_caption('Water Sort PyGame')
+font = pygame.font.Font('freesansbold.ttf', 24)
+fps = 60
+timer = pygame.time.Clock()
+color_choices = ['red', 'orange', 'light blue', 'dark blue', 'dark green', 'pink', 'purple', 'dark gray',
+                 'light green', 'yellow', 'white']
+tube_colors = []
+initial_colors = []
+# 10 - 14 tubes, always start with two empty
+tubes = 10
+new_game = True
+selected = False
+tube_rects = []
+select_rect = 100
+win = False
+pop_push_mode = None  # None, 'pop', or 'push'
+pop_tube_index = None
+push_tube_index = None
+pop_button_rect = None
+push_button_rect = None
 
-display = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Balloon Shooter Game")
-clock = pygame.time.Clock()
-
-margin = 100
-lowerBound = 100
-
-score = 0
-
-white = (230, 230, 230)
-lightBlue = (4, 27, 96)
-red = (231, 76, 60)
-lightGreen = (25, 111, 61)
-darkGray = (40, 55, 71)
-darkBlue = (64, 178, 239)
-green = (35, 155, 86)
-yellow = (244, 208, 63)
-blue = (46, 134, 193)
-purple = (155, 89, 182)
-orange = (243, 156, 18)
-
-font = pygame.font.SysFont("Arial", 25)
+# select a number of tubes and pick random colors upon new game setup
+def generate_start():
+    tubes_number = 5
+    tubes_colors = []
+    available_colors = []
+    for i in range(tubes_number):
+        tubes_colors.append([])
+        if i < tubes_number - 2:
+            for j in range(4):
+                available_colors.append(i)
+    for i in range(tubes_number - 2):
+        for j in range(4):
+            color = random.choice(available_colors)
+            tubes_colors[i].append(color)
+            available_colors.remove(color)
+    return tubes_number, tubes_colors
 
 
-       
-balloons = []
-noBalloon = 10
-for i in range(noBalloon):
-    obj = Balloon(random.choice([1, 1, 2, 2, 2, 2, 3, 3, 3, 4]))
-    balloons.append(obj)
-        
-game()
+# draw all tubes and colors on screen, as well as indicating what tube was selected
+def draw_tubes(tubes_num, tube_cols):
+    global pop_button_rect, push_button_rect
+    tube_boxes = []
+    pop_button_rect = None
+    push_button_rect = None
+    if tubes_num % 2 == 0:
+        tubes_per_row = tubes_num // 2
+        offset = False
+    else:
+        tubes_per_row = tubes_num // 2 + 1
+        offset = True
+    spacing = WIDTH / tubes_per_row
+    for i in range(tubes_per_row):
+        for j in range(len(tube_cols[i])):
+            pygame.draw.rect(screen, color_choices[tube_cols[i][j]], [5 + spacing * i, 200 - (50 * j), 65, 50], 0, 3)
+        box = pygame.draw.rect(screen, 'blue', [5 + spacing * i, 50, 65, 200], 5, 5)
+        # Highlight selected tube
+        if select_rect == i:
+            pygame.draw.rect(screen, 'green', [5 + spacing * i, 50, 65, 200], 3, 5)
+        # Draw Pop button if a tube is selected and not yet popped
+        if selected and pop_push_mode is None and select_rect == i:
+            pop_button_rect = pygame.draw.rect(screen, 'gray', [5 + spacing * i + 80, 100, 80, 40])
+            pop_text = font.render('Pop', True, 'black')
+            screen.blit(pop_text, (5 + spacing * i + 100, 110))
+        # Draw Push button if in push mode and this is the destination tube
+        if pop_push_mode == 'push' and push_tube_index == i:
+            push_button_rect = pygame.draw.rect(screen, 'gray', [5 + spacing * i + 80, 160, 80, 40])
+            push_text = font.render('Push', True, 'black')
+            screen.blit(push_text, (5 + spacing * i + 95, 170))
+        tube_boxes.append(box)
+    if offset:
+        for i in range(tubes_per_row - 1):
+            for j in range(len(tube_cols[i + tubes_per_row])):
+                pygame.draw.rect(screen, color_choices[tube_cols[i + tubes_per_row][j]],
+                                 [(spacing * 0.5) + 5 + spacing * i, 450 - (50 * j), 65, 50], 0, 3)
+            box = pygame.draw.rect(screen, 'blue', [(spacing * 0.5) + 5 + spacing * i, 300, 65, 200], 5, 5)
+            # Highlight selected tube
+            if select_rect == i + tubes_per_row:
+                pygame.draw.rect(screen, 'green', [(spacing * 0.5) + 5 + spacing * i, 300, 65, 200], 3, 5)
+            # Draw Pop button if a tube is selected and not yet popped
+            if selected and pop_push_mode is None and select_rect == i + tubes_per_row:
+                pop_button_rect = pygame.draw.rect(screen, 'gray', [(spacing * 0.5) + 5 + spacing * i + 80, 100, 80, 40])
+                pop_text = font.render('Pop', True, 'black')
+                screen.blit(pop_text, ((spacing * 0.5) + 5 + spacing * i + 100, 110))
+            # Draw Push button if in push mode and this is the destination tube
+            if pop_push_mode == 'push' and push_tube_index == i + tubes_per_row:
+                push_button_rect = pygame.draw.rect(screen, 'gray', [(spacing * 0.5) + 5 + spacing * i + 80, 160, 80, 40])
+                push_text = font.render('Push', True, 'black')
+                screen.blit(push_text, ((spacing * 0.5) + 5 + spacing * i + 95, 170))
+            tube_boxes.append(box)
+    else:
+        for i in range(tubes_per_row):
+            for j in range(len(tube_cols[i + tubes_per_row])):
+                pygame.draw.rect(screen, color_choices[tube_cols[i + tubes_per_row][j]], [5 + spacing * i,
+                                                                                          450 - (50 * j), 65, 50], 0, 3)
+            box = pygame.draw.rect(screen, 'blue', [5 + spacing * i, 300, 65, 200], 5, 5)
+            # Highlight selected tube
+            if select_rect == i + tubes_per_row:
+                pygame.draw.rect(screen, 'green', [5 + spacing * i, 300, 65, 200], 3, 5)
+            # Draw Pop button if a tube is selected and not yet popped
+            if selected and pop_push_mode is None and select_rect == i + tubes_per_row:
+                pop_button_rect = pygame.draw.rect(screen, 'gray', [5 + spacing * i + 80, 100, 80, 40])
+                pop_text = font.render('Pop', True, 'black')
+                screen.blit(pop_text, (5 + spacing * i + 100, 110))
+            # Draw Push button if in push mode and this is the destination tube
+            if pop_push_mode == 'push' and push_tube_index == i + tubes_per_row:
+                push_button_rect = pygame.draw.rect(screen, 'gray', [5 + spacing * i + 80, 160, 80, 40])
+                push_text = font.render('Push', True, 'black')
+                screen.blit(push_text, (5 + spacing * i + 95, 170))
+            tube_boxes.append(box)
+    return tube_boxes
+
+
+# determine the top color of the selected tube and destination tube,
+# as well as how long a chain of that color to move
+def calc_move(colors, selected_rect, destination):
+    color_on_top = 100
+    length = 1
+    color_to_move = 100
+    if len(colors[selected_rect]) > 0:
+        color_to_move = colors[selected_rect][-1]
+    if 4 > len(colors[destination]):
+        if len(colors[destination]) == 0:
+            color_on_top = color_to_move
+        else:
+            color_on_top = colors[destination][-1]
+    if color_on_top == color_to_move:
+        for i in range(length):
+            if len(colors[destination]) < 4:
+                if len(colors[selected_rect]) > 0:
+                    colors[destination].append(color_on_top)
+                    colors[selected_rect].pop(-1)
+    return colors
+
+
+# check if every tube with colors is 4 long and all the same color. That's how we win
+def check_victory(colors):
+    won = True
+    for i in range(len(colors)):
+        if len(colors[i]) > 0:
+            if len(colors[i]) != 4:
+                won = False
+            else:
+                main_color = colors[i][-1]
+                for j in range(len(colors[i])):
+                    if colors[i][j] != main_color:
+                        won = False
+    return won
+
+
+# main game loop
+run = True
+while run:
+    screen.fill('brown')
+    timer.tick(fps)
+    # generate game board on new game, make a copy of the colors in case of restart
+    if new_game:
+        tubes, tube_colors = generate_start()
+        initial_colors = copy.deepcopy(tube_colors)
+        new_game = False
+    # draw tubes every cycle
+    else:
+        tube_rects = draw_tubes(tubes, tube_colors)
+    # check for victory every cycle
+    win = check_victory(tube_colors)
+    # event handling - Quit button exits, clicks select tubes, enter and space for restart and new board
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_SPACE:
+                tube_colors = copy.deepcopy(initial_colors)
+            elif event.key == pygame.K_RETURN:
+                new_game = True
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = event.pos
+            # Step 1: No tube selected yet
+            if not selected:
+                for item in range(len(tube_rects)):
+                    if tube_rects[item].collidepoint(mouse_pos):
+                        selected = True
+                        select_rect = item
+                        pop_push_mode = None
+                        pop_tube_index = None
+                        push_tube_index = None
+            # Step 2: Tube selected, waiting for pop or push button
+            elif selected and pop_push_mode is None:
+                if pop_button_rect and pop_button_rect.collidepoint(mouse_pos):
+                    pop_push_mode = 'pop'
+                    pop_tube_index = select_rect
+                # If user clicks outside, cancel selection
+                elif push_button_rect and push_button_rect.collidepoint(mouse_pos):
+                    # Do nothing, force user to use pop first
+                    pass
+                else:
+                    # Clicked elsewhere, cancel selection
+                    selected = False
+                    select_rect = 100
+            # Step 3: Pop selected, waiting for destination tube
+            elif pop_push_mode == 'pop':
+                for item in range(len(tube_rects)):
+                    if tube_rects[item].collidepoint(mouse_pos) and item != pop_tube_index:
+                        push_tube_index = item
+                        select_rect = item
+                        pop_push_mode = 'push'
+                        break
+            # Step 4: Push mode, waiting for push button click
+            elif pop_push_mode == 'push':
+                if push_button_rect and push_button_rect.collidepoint(mouse_pos):
+                    if pop_tube_index is not None and push_tube_index is not None:
+                        tube_colors = calc_move(tube_colors, pop_tube_index, push_tube_index)
+                    # Reset all selection
+                    selected = False
+                    select_rect = 100
+                    pop_push_mode = None
+                    pop_tube_index = None
+                    push_tube_index = None
+                else:
+                    # Clicked elsewhere, cancel selection
+                    selected = False
+                    select_rect = 100
+                    pop_push_mode = None
+                    pop_tube_index = None
+                    push_tube_index = None
+    # draw 'victory' text when winning in middle, always show restart and new board text at top
+    if win:
+        victory_text = font.render('You Won! Press Enter for a new board!', True, 'white')
+        screen.blit(victory_text, (30, 265))
+    restart_text = font.render('Stuck? Space-Restart, Enter-New Board!', True, 'white')
+    screen.blit(restart_text, (10, 10))
+
+    # display all drawn items on screen, exit pygame if run == False
+    pygame.display.flip()
+pygame.quit()
