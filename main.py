@@ -18,8 +18,8 @@ color_choices = ['red', 'orange', 'light blue', 'dark blue', 'dark green', 'pink
                  'light green', 'yellow', 'white']
 tube_colors = []
 initial_colors = []
-# 10 - 14 tubes, always start with two empty
-tubes = 10
+#always start with two empty
+tubes = 5
 new_game = True
 selected = False
 tube_rects = []
@@ -180,7 +180,7 @@ def calc_move(colors, selected_rect, destination):
     return colors
 
 
-# check if every tube with colors is 4 long and all the same color. That's how we win
+# check if every tube with colors is 4 long and all the same color for win condition
 def check_victory(colors):
     won = True
     for i in range(len(colors)):
