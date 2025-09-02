@@ -14,7 +14,7 @@ pygame.display.set_caption('Water Sort PyGame')
 font = pygame.font.Font('freesansbold.ttf', 24)
 fps = 60
 timer = pygame.time.Clock()
-color_choices = ['red', 'orange', 'light blue', 'dark blue', 'dark green', 'pink', 'purple', 'dark gray',
+color_choices = ['red', 'orange', 'dark blue', 'dark green', 'pink', 'purple', 'dark gray',
                  'light green', 'yellow', 'white']
 tube_colors = []
 initial_colors = []
@@ -198,7 +198,7 @@ def check_victory(colors):
 # main game loop
 run = True
 while run:
-    screen.fill('brown')
+    screen.fill('light blue')
     timer.tick(fps)
     # generate game board on new game, make a copy of the colors in case of restart
     if new_game:
