@@ -244,7 +244,7 @@ def draw_queues(queue_list):
         if ((pop_push_mode == 'dequeue_queue' and dequeue_destination_type == 'queue' and dequeue_destination_index == idx) or
             (pop_push_mode == 'queue' and selected_queue_index == idx)):
             queue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y, 80, 40])
-            queue_text = font.render('Queue', True, 'black')
+            queue_text = font.render('Enqueue', True, 'black')
             screen.blit(queue_text, (x + queue_w + 35, y + 10))
         queue_rects.append(pygame.Rect(x, y, queue_w, queue_h))
 
