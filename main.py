@@ -7,11 +7,12 @@ import pygame
 pygame.init()
 
 # initialize game variables
-WIDTH = 1400  # Increased from 1000
-HEIGHT = 700  # Increased from 550
+WIDTH = 1600  # Increased from 1000
+HEIGHT = 900  # Increased from 550
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 pygame.display.set_caption('Water Sort PyGame')
 font = pygame.font.Font('freesansbold.ttf', 24)
+label_font = pygame.font.Font('freesansbold.ttf', 20) #Used for LIFO and FIFO labels
 fps = 60
 timer = pygame.time.Clock()
 color_choices = ['red', 'orange', 'dark blue', 'dark green', 'pink', 'purple', 'dark gray',
@@ -72,15 +73,21 @@ def draw_tubes(tubes_num, tube_cols):
     else:
         tubes_per_row = tubes_num // 2 + 1
         offset = True
-    spacing = WIDTH / tubes_per_row
+    spacing = (WIDTH - 200) / tubes_per_row  # Reduced width to create margins
+    left_margin = 100  # Add margin on the left
     # --- Upper row ---
     for i in range(tubes_per_row):
         for j in range(len(tube_cols[i])):
-            pygame.draw.rect(screen, color_choices[tube_cols[i][j]], [5 + spacing * i, 200 - (50 * j), 65, 50], 0, 3)
-        tube_x = 5 + spacing * i
+            pygame.draw.rect(screen, color_choices[tube_cols[i][j]], [left_margin + spacing * i, 200 - (50 * j), 65, 50], 0, 3)
+        tube_x = left_margin + spacing * i
         tube_y = 50
         tube_w = 65
         tube_h = 200
+
+        # Draw LIFO label for tubes
+        lifo_text = label_font.render('LIFO', True, 'black')
+        screen.blit(lifo_text, (tube_x + tube_w/2 - 25, tube_y + tube_h + 10))
+
         pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
         pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
         pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
@@ -104,16 +111,23 @@ def draw_tubes(tubes_num, tube_cols):
             screen.blit(push_text, (tube_x + 95, tube_y + 120))
         box = pygame.Rect(tube_x, tube_y, tube_w, tube_h)
         tube_boxes.append(box)
+        
     # --- Lower row ---
     if offset:
         for i in range(tubes_per_row - 1):
             for j in range(len(tube_cols[i + tubes_per_row])):
                 pygame.draw.rect(screen, color_choices[tube_cols[i + tubes_per_row][j]],
                                  [(spacing * 0.5) + 5 + spacing * i, 450 - (50 * j), 65, 50], 0, 3)
-            tube_x = (spacing * 0.5) + 5 + spacing * i
+            tube_x = (spacing * 0.5) + left_margin + spacing * i
             tube_y = 300
+
             tube_w = 65
             tube_h = 200
+
+            # Draw LIFO label for 2nd row stacks
+            fifo_text = label_font.render('LIFO', True, 'black')
+            screen.blit(fifo_text, (tube_x + tube_w/2 - 25, tube_y + tube_h + 10))
+
             pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
             pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
             pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
@@ -247,6 +261,10 @@ def draw_queues(queue_list):
             queue_text = font.render('Enqueue', True, 'black')
             screen.blit(queue_text, (x + queue_w + 35, y + 10))
         queue_rects.append(pygame.Rect(x, y, queue_w, queue_h))
+
+        # Add LIFO label below queues (for visual consistency)
+        lifo_text = label_font.render('LIFO', True, 'black')
+        screen.blit(lifo_text, (x + queue_w/2 - 25, y + queue_h + 10))
 
 
 # main game loop
