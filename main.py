@@ -1,14 +1,14 @@
-# import critical modules - random for board generation, copy for being able to restart, pygame for framework
+#import critical modules - random for board generation, copy for being able to restart, pygame for framework
 import copy
 import random
 import pygame
 
-# initialize pygame
+#initialize pygame
 pygame.init()
 
-# initialize game variables
-WIDTH = 1600  # Increased from 1000
-HEIGHT = 900  # Increased from 550
+#initialize game variables
+WIDTH = 1600 
+HEIGHT = 900 
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 pygame.display.set_caption('Water Sort PyGame')
 font = pygame.font.Font('freesansbold.ttf', 24)
@@ -26,21 +26,21 @@ selected = False
 tube_rects = []
 select_rect = 100
 win = False
-pop_push_mode = None  # None, 'pop', 'push', or 'queue'
+pop_push_mode = None  #None, 'pop', 'push', or 'enqueue'
 pop_tube_index = None
 push_tube_index = None
 pop_button_rect = None
 push_button_rect = None
-queue_blocks = []  # stores color indices for queue
+queue_blocks = []  #stores color indices for queue
 queue_selected = False
-queue_mode = None  # None, 'queue', or 'dequeue'
+queue_mode = None  #None, 'enqueue', or 'dequeue'
 queue_button_rect = None
 dequeue_button_rect = None
 queue_list = [[], []]  # Two queues, each can hold up to 4 blocks
 queue_rects = []
 selected_queue_index = None
 dequeued_queue_index = None
-dequeue_destination_type = None  # 'tube' or 'queue'
+dequeue_destination_type = None  # 'tube' or 'enqueue'
 dequeue_destination_index = None
 
 # select a number of tubes and pick random colors upon new game setup
@@ -61,58 +61,6 @@ def generate_start():
     return tubes_number, tubes_colors
 
 
-# draw all tubes and colors on screen, as well as indicating what tube was selected
-def draw_tubes(tubes_num, tube_cols):
-    global pop_button_rect, push_button_rect
-    tube_boxes = []
-    pop_button_rect = None
-    push_button_rect = None
-    if tubes_num % 2 == 0:
-        tubes_per_row = tubes_num // 2
-        offset = False
-    else:
-        tubes_per_row = tubes_num // 2 + 1
-        offset = True
-    spacing = (WIDTH - 200) / tubes_per_row  # Reduced width to create margins
-    left_margin = 100  # Add margin on the left
-    # --- Upper row ---
-    for i in range(tubes_per_row):
-        for j in range(len(tube_cols[i])):
-            pygame.draw.rect(screen, color_choices[tube_cols[i][j]], [left_margin + spacing * i, 200 - (50 * j), 65, 50], 0, 3)
-        tube_x = left_margin + spacing * i
-        tube_y = 50
-        tube_w = 65
-        tube_h = 200
-
-        # Draw LIFO label for tubes
-        lifo_text = label_font.render('LIFO', True, 'black')
-        screen.blit(lifo_text, (tube_x + tube_w/2 - 25, tube_y + tube_h + 10))
-
-        pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
-        pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
-        pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
-        # Highlight selected tube
-        if (select_rect == i) or (pop_push_mode == 'dequeue_push' and dequeue_destination_type == 'tube' and dequeue_destination_index == i):
-            pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
-        # Draw Pop button if a tube is selected and not yet popped
-        if selected and pop_push_mode is None and select_rect == i:
-            pop_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + 80, tube_y + 50, 80, 40])
-            pop_text = font.render('Pop', True, 'black')
-            screen.blit(pop_text, (tube_x + 100, tube_y + 60))
-        # Draw Push button if in push mode and this is the destination tube
-        if pop_push_mode == 'push' and push_tube_index == i:
-            push_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + 80, tube_y + 110, 80, 40])
-            push_text = font.render('Push', True, 'black')
-            screen.blit(push_text, (tube_x + 95, tube_y + 120))
-        # Draw Push button if in dequeue_push mode and this is the destination tube
-        if pop_push_mode == 'dequeue_push' and push_tube_index == i:
-            push_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + 80, tube_y + 110, 80, 40])
-            push_text = font.render('Push', True, 'black')
-            screen.blit(push_text, (tube_x + 95, tube_y + 120))
-        box = pygame.Rect(tube_x, tube_y, tube_w, tube_h)
-        tube_boxes.append(box)
-        
-    # --- Lower row ---
 def draw_tubes(tubes_num, tube_cols):
     global pop_button_rect, push_button_rect
     tube_boxes = []
@@ -128,36 +76,32 @@ def draw_tubes(tubes_num, tube_cols):
 
     tube_w = 65
     tube_h = 200
-    spacing = 200  # distance between tubes
+    spacing = 200  #refers to distance between tubes
 
-    # --- Compute centered layout width ---
     layout_width = tubes_per_row * tube_w + (tubes_per_row - 1) * spacing
-    left_margin = (WIDTH - layout_width) / 2  # center horizontally
+    left_margin = (WIDTH - layout_width) / 2 
 
-    # --- Upper row ---
+    #top row
     for i in range(tubes_per_row):
         tube_x = left_margin + i * (tube_w + spacing)
-        tube_y = 80  # raised a bit for visual balance
+        tube_y = 80
 
-        # Draw liquid blocks
         for j in range(len(tube_cols[i])):
             pygame.draw.rect(screen, color_choices[tube_cols[i][j]],
                              [tube_x, tube_y + tube_h - 50 * (j + 1), tube_w, 50], 0, 3)
 
-        # Draw tube outline
         pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
         pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
         pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
 
-        # Label
         lifo_text = label_font.render('LIFO', True, 'black')
         screen.blit(lifo_text, (tube_x + tube_w/2 - 25, tube_y + tube_h + 10))
 
-        # Highlight selected
+        #highlight selected queue/stack
         if (select_rect == i) or (pop_push_mode == 'dequeue_push' and dequeue_destination_type == 'tube' and dequeue_destination_index == i):
             pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
 
-        # Buttons
+        #show buttons 
         if selected and pop_push_mode is None and select_rect == i:
             pop_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 40, 80, 40])
             pop_text = font.render('Pop', True, 'black')
@@ -169,7 +113,7 @@ def draw_tubes(tubes_num, tube_cols):
 
         tube_boxes.append(pygame.Rect(tube_x, tube_y, tube_w, tube_h))
 
-    # --- Lower row ---
+    #lower row
     lower_row_y = 360
     lower_row_offset = left_margin + (spacing / 2 if offset else 0)
     for i in range(tubes_per_row - (1 if offset else 0)):
@@ -204,6 +148,56 @@ def draw_tubes(tubes_num, tube_cols):
 
     return tube_boxes
 
+# draw queue blocks and buttons for enqueue/dequeue
+def draw_queues(queue_list):
+    global queue_rects, queue_button_rect, dequeue_button_rect
+    queue_rects = []
+    queue_w = 260
+    queue_h = 65
+    block_w = 65
+    y = 650
+    spacing = 400  # distance between the two queues
+    layout_width = 2 * queue_w + spacing
+    left_margin = (WIDTH - layout_width) / 2  # center horizontally
+
+    queue_button_rect = None
+    dequeue_button_rect = None
+
+    for idx in range(2):
+        x = left_margin + idx * (queue_w + spacing)
+        pygame.draw.line(screen, 'black', (x, y), (x + queue_w, y), 5)
+        pygame.draw.line(screen, 'black', (x, y + queue_h), (x + queue_w, y + queue_h), 5)
+
+        #draw colored blocks
+        for i, color_idx in enumerate(queue_list[idx]):
+            pygame.draw.rect(screen, color_choices[color_idx], [x + i * block_w, y, block_w, queue_h], 0, 3)
+
+        #highlight data structure when selected
+        highlight = (
+            (queue_selected and selected_queue_index == idx and pop_push_mode is None) or
+            (pop_push_mode == 'enqueue' and selected_queue_index == idx) or
+            (pop_push_mode == 'dequeue_queue' and dequeue_destination_type == 'enqueue' and dequeue_destination_index == idx) or
+            (pop_push_mode == 'dequeue' and dequeued_queue_index == idx)
+        )
+        if highlight:
+            pygame.draw.rect(screen, 'green', [x, y, queue_w, queue_h], 3, 5)
+
+        #button creation
+        if queue_selected and selected_queue_index == idx and pop_push_mode is None:
+            dequeue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y, 80, 40])
+            dequeue_text = font.render('Dequeue', True, 'black')
+            screen.blit(dequeue_text, (x + queue_w + 35, y + 10))
+        if ((pop_push_mode == 'dequeue_queue' and dequeue_destination_type == 'enqueue' and dequeue_destination_index == idx)
+            or (pop_push_mode == 'enqueue' and selected_queue_index == idx)):
+            queue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y, 80, 40])
+            queue_text = font.render('Enqueue', True, 'black')
+            screen.blit(queue_text, (x + queue_w + 35, y + 10))
+
+        queue_rects.append(pygame.Rect(x, y, queue_w, queue_h))
+
+        #label the word FIFO for queues
+        label = label_font.render('FIFO', True, 'black')
+        screen.blit(label, (x + queue_w / 2 - 25, y + queue_h + 10))
 
 # determine the top color of the selected tube and destination tube,
 # as well as how long a chain of that color to move
@@ -227,7 +221,7 @@ def calc_move(colors, selected_rect, destination):
     return colors
 
 
-# check if every tube with colors is 4 long and all the same color for win condition
+#check if the queues/stacks holding the colour blocks are fully filled for the win condition
 def check_victory(colors):
     won = True
     for i in range(len(colors)):
@@ -242,56 +236,7 @@ def check_victory(colors):
     return won
 
 
-# draw queue blocks and buttons for enqueue/dequeue
-def draw_queues(queue_list):
-    global queue_rects, queue_button_rect, dequeue_button_rect
-    queue_rects = []
-    queue_w = 260
-    queue_h = 65
-    block_w = 65
-    y = 650
-    spacing = 400  # distance between the two queues
-    layout_width = 2 * queue_w + spacing
-    left_margin = (WIDTH - layout_width) / 2  # center horizontally
 
-    queue_button_rect = None
-    dequeue_button_rect = None
-
-    for idx in range(2):
-        x = left_margin + idx * (queue_w + spacing)
-        pygame.draw.line(screen, 'black', (x, y), (x + queue_w, y), 5)
-        pygame.draw.line(screen, 'black', (x, y + queue_h), (x + queue_w, y + queue_h), 5)
-
-        # Draw colored blocks
-        for i, color_idx in enumerate(queue_list[idx]):
-            pygame.draw.rect(screen, color_choices[color_idx], [x + i * block_w, y, block_w, queue_h], 0, 3)
-
-        # Highlight
-        highlight = (
-            (queue_selected and selected_queue_index == idx and pop_push_mode is None) or
-            (pop_push_mode == 'queue' and selected_queue_index == idx) or
-            (pop_push_mode == 'dequeue_queue' and dequeue_destination_type == 'queue' and dequeue_destination_index == idx) or
-            (pop_push_mode == 'dequeue' and dequeued_queue_index == idx)
-        )
-        if highlight:
-            pygame.draw.rect(screen, 'green', [x, y, queue_w, queue_h], 3, 5)
-
-        # Buttons
-        if queue_selected and selected_queue_index == idx and pop_push_mode is None:
-            dequeue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y, 80, 40])
-            dequeue_text = font.render('Dequeue', True, 'black')
-            screen.blit(dequeue_text, (x + queue_w + 35, y + 10))
-        if ((pop_push_mode == 'dequeue_queue' and dequeue_destination_type == 'queue' and dequeue_destination_index == idx)
-            or (pop_push_mode == 'queue' and selected_queue_index == idx)):
-            queue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y, 80, 40])
-            queue_text = font.render('Enqueue', True, 'black')
-            screen.blit(queue_text, (x + queue_w + 35, y + 10))
-
-        queue_rects.append(pygame.Rect(x, y, queue_w, queue_h))
-
-        # Label for queues
-        label = label_font.render('FIFO', True, 'black')
-        screen.blit(label, (x + queue_w / 2 - 25, y + queue_h + 10))
 
 # main game loop
 run = True
@@ -335,7 +280,7 @@ while run:
                         selected_queue_index = q_idx
                         queue_button_rect = None
                         dequeue_button_rect = None
-            # Stack logic: Pop selected
+            #Pop was selected
             elif selected and not queue_selected and pop_push_mode is None:
                 if pop_button_rect and pop_button_rect.collidepoint(mouse_pos):
                     pop_push_mode = 'pop'
@@ -343,7 +288,7 @@ while run:
                 else:
                     selected = False
                     select_rect = 100
-            # After pop, allow selecting either a tube (for push) or a queue (for queue)
+            #then allows selecting either a stack (for push) or a queue (for queue)
             elif pop_push_mode == 'pop':
                 for item in range(len(tube_rects)):
                     if tube_rects[item].collidepoint(mouse_pos) and item != pop_tube_index:
@@ -355,10 +300,10 @@ while run:
                     if q_rect.collidepoint(mouse_pos):
                         queue_selected = True
                         selected_queue_index = q_idx
-                        pop_push_mode = 'queue'
+                        pop_push_mode = 'enqueue'
                         break
-            # Show Queue button and handle queueing after pop
-            elif pop_push_mode == 'queue' and queue_selected:
+            #Shows enueue btn and handle queueing after pop
+            elif pop_push_mode == 'enqueue' and queue_selected:
                 if queue_button_rect and queue_button_rect.collidepoint(mouse_pos):
                     if len(tube_colors[pop_tube_index]) > 0 and len(queue_list[selected_queue_index]) < 4:
                         block = tube_colors[pop_tube_index].pop(-1)
@@ -419,7 +364,7 @@ while run:
                 if not tube_clicked:
                     for q_idx, q_rect in enumerate(queue_rects):
                         if q_rect.collidepoint(mouse_pos) and q_idx != dequeued_queue_index:
-                            dequeue_destination_type = 'queue'
+                            dequeue_destination_type = 'enqueue'
                             dequeue_destination_index = q_idx
                             queue_selected = True
                             selected_queue_index = q_idx
