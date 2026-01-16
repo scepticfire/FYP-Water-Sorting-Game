@@ -2,10 +2,10 @@
 ---
 
 ## <u>Concepts taught:</u>
-Basic Queue Operations (Dequeue, Enqueue)
-Basic Stack Operations (Pop, Push)
+Basic Queue Operations (Dequeue, Enqueue) &
+Stack Operations (Pop, Push)
 
-## <u>Objectives & How to play</u>
+## <u>Objectives & how to play</u>
 - There are 5 stacks <b>(LIFO)</b> and 2 queues <b>(FIFO)</b>
 ![alt text](<images/starting screen.png>)
 - Click on stacks/queues which contains a color block and move them around using Basic Operationns Buttons
