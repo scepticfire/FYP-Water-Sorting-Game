@@ -15,8 +15,7 @@ font = pygame.font.Font('freesansbold.ttf', 24)
 label_font = pygame.font.Font('freesansbold.ttf', 20) #Used for LIFO and FIFO labels
 fps = 60
 timer = pygame.time.Clock()
-color_choices = ['red', 'orange', 'dark blue', 'dark green', 'pink', 'purple', 'dark gray',
-                 'light green', 'yellow', 'white']
+color_choices = ['red', 'orange', 'purple', 'dark green', 'pink']
 tube_colors = []
 initial_colors = []
 #always start with two empty
@@ -46,18 +45,24 @@ dequeue_destination_index = None
 # select a number of tubes and pick random colors upon new game setup
 def generate_start():
     tubes_number = 5
-    tubes_colors = []
-    available_colors = []
-    for i in range(tubes_number):
-        tubes_colors.append([])
-        if i < tubes_number - 2:
-            for j in range(4):
-                available_colors.append(i)
+    tubes_colors = [[] for _ in range(tubes_number)]
+
+    # Create a pool of 4 blocks for each color
+    color_pool = []
+    for color in range(len(color_choices)):
+        color_pool.extend([color] * 4)
+
+    random.shuffle(color_pool)  # Shuffle the pool for randomness
+
+    # Assign 4 blocks to each of the top stacks
     for i in range(tubes_number - 2):
-        for j in range(4):
-            color = random.choice(available_colors)
-            tubes_colors[i].append(color)
-            available_colors.remove(color)
+        for _ in range(4):
+            tubes_colors[i].append(color_pool.pop())
+
+    # Assign remaining blocks to the bottom queues
+    queue_list[0] = [color_pool.pop() for _ in range(4)]
+    queue_list[1] = [color_pool.pop() for _ in range(4)]
+
     return tubes_number, tubes_colors
 
 
