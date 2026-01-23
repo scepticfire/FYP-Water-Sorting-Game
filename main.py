@@ -99,8 +99,8 @@ def draw_tubes(tubes_num, tube_cols):
         pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
         pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
 
-        lifo_text = label_font.render('LIFO', True, 'black')
-        screen.blit(lifo_text, (tube_x + tube_w/2 - 25, tube_y + tube_h + 10))
+        lifo_text = label_font.render('Stack (LIFO)', True, 'black')
+        screen.blit(lifo_text, (tube_x + tube_w/2 - 45, tube_y + tube_h + 10))
 
         #highlight selected queue/stack
         if (select_rect == i) or (pop_push_mode == 'dequeue_push' and dequeue_destination_type == 'tube' and dequeue_destination_index == i):
@@ -133,8 +133,8 @@ def draw_tubes(tubes_num, tube_cols):
         pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
         pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
 
-        lifo_text = label_font.render('LIFO', True, 'black')
-        screen.blit(lifo_text, (tube_x + tube_w/2 - 25, tube_y + tube_h + 10))
+        lifo_text = label_font.render('Stack (LIFO)', True, 'black')
+        screen.blit(lifo_text, (tube_x + tube_w/2 - 45, tube_y + tube_h + 10))
 
         if (select_rect == i + tubes_per_row) or (
             pop_push_mode == 'dequeue_push' and dequeue_destination_type == 'tube' and dequeue_destination_index == i + tubes_per_row):
@@ -201,8 +201,8 @@ def draw_queues(queue_list):
         queue_rects.append(pygame.Rect(x, y, queue_w, queue_h))
 
         #label the word FIFO for queues
-        label = label_font.render('FIFO', True, 'black')
-        screen.blit(label, (x + queue_w / 2 - 25, y + queue_h + 10))
+        label = label_font.render('Queue (FIFO)', True, 'black')
+        screen.blit(label, (x + queue_w / 2 - 45, y + queue_h + 10))
 
 # determine the top color of the selected tube and destination tube,
 # as well as how long a chain of that color to move
