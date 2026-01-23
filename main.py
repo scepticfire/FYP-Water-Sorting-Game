@@ -106,15 +106,32 @@ def draw_tubes(tubes_num, tube_cols):
         if (select_rect == i) or (pop_push_mode == 'dequeue_push' and dequeue_destination_type == 'tube' and dequeue_destination_index == i):
             pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
 
-        #show buttons 
+        #show buttons and arrows
         if selected and pop_push_mode is None and select_rect == i:
             pop_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 40, 80, 40])
             pop_text = font.render('Pop', True, 'black')
             screen.blit(pop_text, (tube_x + tube_w + 35, tube_y + 50))
+            pygame.draw.line(screen, 'red', (tube_x + tube_w / 2, tube_y - 20), (tube_x + tube_w / 2, tube_y - 50), 5)
+            pygame.draw.polygon(screen, 'red', [(tube_x + tube_w / 2 - 8, tube_y - 50), (tube_x + tube_w / 2 + 8, tube_y - 50), (tube_x + tube_w / 2, tube_y - 65)])
         if (pop_push_mode in ['push', 'dequeue_push']) and push_tube_index == i:
             push_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 110, 80, 40])
             push_text = font.render('Push', True, 'black')
             screen.blit(push_text, (tube_x + tube_w + 30, tube_y + 120))
+            arrow_x = tube_x + tube_w / 2
+            arrow_start = tube_y - 65
+            arrow_end = tube_y - 35
+
+            # Downward arrow (PUSH)
+            pygame.draw.line(screen, 'green', (arrow_x, arrow_start), (arrow_x, arrow_end), 5)
+            pygame.draw.polygon(
+                screen,
+                'green',
+                [
+                    (arrow_x - 8, arrow_end),
+                    (arrow_x + 8, arrow_end),
+                    (arrow_x, arrow_end + 12)
+                ]
+            )
 
         tube_boxes.append(pygame.Rect(tube_x, tube_y, tube_w, tube_h))
 
@@ -144,10 +161,27 @@ def draw_tubes(tubes_num, tube_cols):
             pop_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 40, 80, 40])
             pop_text = font.render('Pop', True, 'black')
             screen.blit(pop_text, (tube_x + tube_w + 35, tube_y + 50))
+            pygame.draw.line(screen, 'red', (tube_x + tube_w / 2, tube_y - 20), (tube_x + tube_w / 2, tube_y - 50), 5)
+            pygame.draw.polygon(screen, 'red', [(tube_x + tube_w / 2 - 8, tube_y - 50), (tube_x + tube_w / 2 + 8, tube_y - 50), (tube_x + tube_w / 2, tube_y - 65)])
         if (pop_push_mode in ['push', 'dequeue_push']) and push_tube_index == i + tubes_per_row:
             push_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 110, 80, 40])
             push_text = font.render('Push', True, 'black')
             screen.blit(push_text, (tube_x + tube_w + 30, tube_y + 120))
+            arrow_x = tube_x + tube_w / 2
+            arrow_start = tube_y - 65
+            arrow_end = tube_y - 35
+
+            # Downward arrow (PUSH)
+            pygame.draw.line(screen, 'green', (arrow_x, arrow_start), (arrow_x, arrow_end), 5)
+            pygame.draw.polygon(
+                screen,
+                'green',
+                [
+                    (arrow_x - 8, arrow_end),
+                    (arrow_x + 8, arrow_end),
+                    (arrow_x, arrow_end + 12)
+                ]
+            )
 
         tube_boxes.append(pygame.Rect(tube_x, tube_y, tube_w, tube_h))
 
@@ -187,16 +221,60 @@ def draw_queues(queue_list):
         if highlight:
             pygame.draw.rect(screen, 'green', [x, y, queue_w, queue_h], 3, 5)
 
-        #button creation
+        #button creation and arrows
         if queue_selected and selected_queue_index == idx and pop_push_mode is None:
-            dequeue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y, 80, 40])
+            dequeue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y, 130, 40])
             dequeue_text = font.render('Dequeue', True, 'black')
             screen.blit(dequeue_text, (x + queue_w + 35, y + 10))
+                # RED dequeue arrow (pointing LEFT)
+            arrow_y = y + queue_h / 2
+            arrow_start = x - 10
+            arrow_end = x - 70
+
+            pygame.draw.line(
+                screen, 'red',
+                (arrow_start, arrow_y),
+                (arrow_end, arrow_y),
+                5
+            )
+
+            pygame.draw.polygon(
+                screen,
+                'red',
+                [
+                    (arrow_end, arrow_y),
+                    (arrow_end + 12, arrow_y - 8),
+                    (arrow_end + 12, arrow_y + 8)
+                ]
+            )
+
         if ((pop_push_mode == 'dequeue_queue' and dequeue_destination_type == 'enqueue' and dequeue_destination_index == idx)
             or (pop_push_mode == 'enqueue' and selected_queue_index == idx)):
-            queue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y, 80, 40])
+            queue_button_rect = pygame.draw.rect(screen, 'gray', [x + queue_w + 20, y + 70, 130, 40])
             queue_text = font.render('Enqueue', True, 'black')
-            screen.blit(queue_text, (x + queue_w + 35, y + 10))
+            screen.blit(queue_text, (x + queue_w + 35, y + 80))
+            # GREEN enqueue arrow (pointing LEFT into queue)
+            arrow_y = y + queue_h / 2
+            arrow_start = x + queue_w + 70
+            arrow_end = x + queue_w + 10
+
+            pygame.draw.line(
+                screen, 'green',
+                (arrow_start, arrow_y),
+                (arrow_end, arrow_y),
+                5
+            )
+
+            pygame.draw.polygon(
+                screen,
+                'green',
+                [
+                    (arrow_end, arrow_y),
+                    (arrow_end + 12, arrow_y - 8),
+                    (arrow_end + 12, arrow_y + 8)
+                ]
+            )
+            
 
         queue_rects.append(pygame.Rect(x, y, queue_w, queue_h))
 
