@@ -76,6 +76,7 @@ def generate_start():
 
 def draw_tubes(tubes_num, tube_cols):
     global pop_button_rect, push_button_rect
+
     tube_boxes = []
     pop_button_rect = None
     push_button_rect = None
@@ -91,6 +92,7 @@ def draw_tubes(tubes_num, tube_cols):
     for i in range(tubes_num):
         tube_x = left_margin + i * (tube_w + spacing)
 
+        # draw blocks
         for j in range(len(tube_cols[i])):
             pygame.draw.rect(
                 screen,
@@ -99,13 +101,70 @@ def draw_tubes(tubes_num, tube_cols):
                 0, 3
             )
 
+        # tube outline
         pygame.draw.rect(screen, 'blue', [tube_x, tube_y, tube_w, tube_h], 5)
 
+        # label
         lifo_text = label_font.render('Stack (LIFO)', True, 'black')
         screen.blit(lifo_text, (tube_x + tube_w / 2 - 45, tube_y + tube_h + 10))
 
+        # highlight selected
         if select_rect == i:
             pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
+
+        # ===============================
+        # POP BUTTON (when stack selected)
+        # ===============================
+        if selected and select_rect == i and pop_push_mode is None:
+            pop_button_rect = pygame.draw.rect(
+                screen, 'gray',
+                [tube_x - 10, tube_y + tube_h + 45, 85, 35]
+            )
+            pop_text = font.render('Pop', True, 'black')
+            screen.blit(pop_text, (tube_x + 10, tube_y + tube_h + 52))
+
+            # RED arrow (upwards)
+            pygame.draw.line(
+                screen, 'red',
+                (tube_x + tube_w / 2, tube_y - 10),
+                (tube_x + tube_w / 2, tube_y - 40),
+                5
+            )
+            pygame.draw.polygon(
+                screen, 'red',
+                [
+                    (tube_x + tube_w / 2, tube_y - 40),
+                    (tube_x + tube_w / 2 - 8, tube_y - 28),
+                    (tube_x + tube_w / 2 + 8, tube_y - 28)
+                ]
+            )
+
+        # ===============================
+        # PUSH BUTTON (after pop)
+        # ===============================
+        if pop_push_mode in ('push', 'dequeue_push') and select_rect == i:
+            push_button_rect = pygame.draw.rect(
+                screen, 'gray',
+                [tube_x - 10, tube_y + tube_h + 45, 85, 35]
+            )
+            push_text = font.render('Push', True, 'black')
+            screen.blit(push_text, (tube_x + 5, tube_y + tube_h + 52))
+
+            # GREEN arrow (downwards)
+            pygame.draw.line(
+                screen, 'green',
+                (tube_x + tube_w / 2, tube_y - 40),
+                (tube_x + tube_w / 2, tube_y - 10),
+                5
+            )
+            pygame.draw.polygon(
+                screen, 'green',
+                [
+                    (tube_x + tube_w / 2, tube_y - 10),
+                    (tube_x + tube_w / 2 - 8, tube_y - 22),
+                    (tube_x + tube_w / 2 + 8, tube_y - 22)
+                ]
+            )
 
         tube_boxes.append(pygame.Rect(tube_x, tube_y, tube_w, tube_h))
 
@@ -209,22 +268,14 @@ def draw_queues(queue_list):
 # determine the top color of the selected tube and destination tube,
 # as well as how long a chain of that color to move
 def calc_move(colors, selected_rect, destination):
-    color_on_top = 100
-    length = 1
-    color_to_move = 100
-    if len(colors[selected_rect]) > 0:
-        color_to_move = colors[selected_rect][-1]
-    if 4 > len(colors[destination]):
-        if len(colors[destination]) == 0:
-            color_on_top = color_to_move
-        else:
-            color_on_top = colors[destination][-1]
-    if color_on_top == color_to_move:
-        for i in range(length):
-            if len(colors[destination]) < 4:
-                if len(colors[selected_rect]) > 0:
-                    colors[destination].append(color_on_top)
-                    colors[selected_rect].pop(-1)
+    if (
+        selected_rect is not None
+        and destination is not None
+        and colors[selected_rect]
+        and len(colors[destination]) < 4
+    ):
+        block = colors[selected_rect].pop(-1)
+        colors[destination].append(block)
     return colors
 
 
