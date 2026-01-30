@@ -41,6 +41,7 @@ selected_queue_index = None
 dequeued_queue_index = None
 dequeue_destination_type = None  # 'tube' or 'enqueue'
 dequeue_destination_index = None
+victory_button_rect = None
 
 # select a number of tubes and pick random colors upon new game setup
 def generate_start():
@@ -118,7 +119,7 @@ def draw_tubes(tubes_num, tube_cols):
         if selected and select_rect == i and pop_push_mode is None:
             pop_button_rect = pygame.draw.rect(
                 screen, 'gray',
-                [tube_x - 10, tube_y + tube_h + 45, 85, 35]
+                [tube_x - 10, tube_y + tube_h + 45, 85, 40]
             )
             pop_text = font.render('Pop', True, 'black')
             screen.blit(pop_text, (tube_x + 10, tube_y + tube_h + 52))
@@ -145,7 +146,7 @@ def draw_tubes(tubes_num, tube_cols):
         if pop_push_mode in ('push', 'dequeue_push') and select_rect == i:
             push_button_rect = pygame.draw.rect(
                 screen, 'gray',
-                [tube_x - 10, tube_y + tube_h + 45, 85, 35]
+                [tube_x - 10, tube_y + tube_h + 45, 85, 40]
             )
             push_text = font.render('Push', True, 'black')
             screen.blit(push_text, (tube_x + 5, tube_y + tube_h + 52))
@@ -330,6 +331,13 @@ while run:
             elif event.key == pygame.K_RETURN:
                 new_game = True
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if win and victory_button_rect and victory_button_rect.collidepoint(mouse_pos):
+                new_game = True
+                win = False
+                selected = False
+                queue_selected = False
+                pop_push_mode = None
+                continue
             mouse_pos = event.pos
             # Select tube or queue
             if not selected and not queue_selected:
@@ -496,8 +504,32 @@ while run:
 
     # draw 'victory' text when winning in middle, always show restart and new board text at top
     if win:
-        victory_text = font.render('You Won! Press Enter for a new board!', True, 'white')
-        screen.blit(victory_text, (30, 265))
+        message = "You won! Click the button to start a new game"
+        text_surface = font.render(message, True, 'black')
+
+        # Position between stacks and queues
+        center_y = (80 + 200 + 500) // 2  # midpoint between stacks & queues
+        text_x = WIDTH // 2 - text_surface.get_width() // 2 - 80
+        text_y = center_y
+
+        screen.blit(text_surface, (text_x, text_y))
+
+        # Draw button
+        victory_button_rect = pygame.draw.rect(
+            screen,
+            'gray',
+            [text_x + text_surface.get_width() + 20, text_y - 5, 120, 40],
+            border_radius=6
+        )
+
+        button_text = font.render("New Game", True, 'black')
+        screen.blit(
+            button_text,
+            (
+                victory_button_rect.centerx - button_text.get_width() // 2,
+                victory_button_rect.centery - button_text.get_height() // 2
+            )
+        )
     #restart_text = font.render('Stuck? Space-Restart, Enter-New Board!', True, 'white')
     #screen.blit(restart_text, (10, 10))
 
