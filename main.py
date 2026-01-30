@@ -280,18 +280,26 @@ def calc_move(colors, selected_rect, destination):
 
 
 #check if the queues/stacks holding the colour blocks are fully filled for the win condition
-def check_victory(colors):
-    won = True
-    for i in range(len(colors)):
-        if len(colors[i]) > 0:
-            if len(colors[i]) != 4:
-                won = False
-            else:
-                main_color = colors[i][-1]
-                for j in range(len(colors[i])):
-                    if colors[i][j] != main_color:
-                        won = False
-    return won
+def check_victory(stacks, queues):
+    def structure_complete(struct):
+        if len(struct) == 0:
+            return True
+        if len(struct) != 4:
+            return False
+        first_color = struct[0]
+        return all(block == first_color for block in struct)
+
+    # Check all stacks
+    for stack in stacks:
+        if not structure_complete(stack):
+            return False
+
+    # Check all queues
+    for queue in queues:
+        if not structure_complete(queue):
+            return False
+
+    return True
 
 
 
@@ -311,7 +319,7 @@ while run:
         tube_rects = draw_tubes(tubes, tube_colors)
         draw_queues(queue_list)
     # check for victory every cycle
-    win = check_victory(tube_colors)
+    win = check_victory(tube_colors, queue_list)
     # event handling - Quit button exits, clicks select tubes, enter and space for restart and new board
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
