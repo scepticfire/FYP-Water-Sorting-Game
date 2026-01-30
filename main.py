@@ -15,11 +15,11 @@ font = pygame.font.Font('freesansbold.ttf', 24)
 label_font = pygame.font.Font('freesansbold.ttf', 20) #Used for LIFO and FIFO labels
 fps = 60
 timer = pygame.time.Clock()
-color_choices = ['red', 'orange', 'purple', 'dark green', 'pink']
+color_choices = ['red', 'orange', 'purple', 'dark green']
 tube_colors = []
 initial_colors = []
 #always start with two empty
-tubes = 5
+tubes = 3
 new_game = True
 selected = False
 tube_rects = []
@@ -35,7 +35,7 @@ queue_selected = False
 queue_mode = None  #None, 'enqueue', or 'dequeue'
 queue_button_rect = None
 dequeue_button_rect = None
-queue_list = [[], []]  # Two queues, each can hold up to 4 blocks
+queue_list = [[], [], []]  #3 queues, each can hold up to 4 blocks
 queue_rects = []
 selected_queue_index = None
 dequeued_queue_index = None
@@ -44,24 +44,32 @@ dequeue_destination_index = None
 
 # select a number of tubes and pick random colors upon new game setup
 def generate_start():
-    tubes_number = 5
+    tubes_number = 3
     tubes_colors = [[] for _ in range(tubes_number)]
 
-    # Create a pool of 4 blocks for each color
+    # 4 colors × 4 blocks = 16 total
     color_pool = []
     for color in range(len(color_choices)):
         color_pool.extend([color] * 4)
 
-    random.shuffle(color_pool)  # Shuffle the pool for randomness
+    random.shuffle(color_pool)
 
-    # Assign 4 blocks to each of the top stacks
-    for i in range(tubes_number - 2):
+    # Fill ONLY first 2 stacks
+    for i in range(2):
         for _ in range(4):
             tubes_colors[i].append(color_pool.pop())
 
-    # Assign remaining blocks to the bottom queues
-    queue_list[0] = [color_pool.pop() for _ in range(4)]
-    queue_list[1] = [color_pool.pop() for _ in range(4)]
+    # Leave 3rd stack empty
+    tubes_colors[2] = []
+
+    # Fill ONLY first 2 queues
+    for q in range(2):
+        queue_list[q] = []
+        for _ in range(4):
+            queue_list[q].append(color_pool.pop())
+
+    # Leave 3rd queue empty
+    queue_list[2] = []
 
     return tubes_number, tubes_colors
 
@@ -72,116 +80,32 @@ def draw_tubes(tubes_num, tube_cols):
     pop_button_rect = None
     push_button_rect = None
 
-    if tubes_num % 2 == 0:
-        tubes_per_row = tubes_num // 2
-        offset = False
-    else:
-        tubes_per_row = tubes_num // 2 + 1
-        offset = True
-
     tube_w = 65
     tube_h = 200
-    spacing = 200  #refers to distance between tubes
+    spacing = 200
 
-    layout_width = tubes_per_row * tube_w + (tubes_per_row - 1) * spacing
-    left_margin = (WIDTH - layout_width) / 2 
+    layout_width = tubes_num * tube_w + (tubes_num - 1) * spacing
+    left_margin = (WIDTH - layout_width) / 2
+    tube_y = 80
 
-    #top row
-    for i in range(tubes_per_row):
+    for i in range(tubes_num):
         tube_x = left_margin + i * (tube_w + spacing)
-        tube_y = 80
 
         for j in range(len(tube_cols[i])):
-            pygame.draw.rect(screen, color_choices[tube_cols[i][j]],
-                             [tube_x, tube_y + tube_h - 50 * (j + 1), tube_w, 50], 0, 3)
-
-        pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
-        pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
-        pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
-
-        lifo_text = label_font.render('Stack (LIFO)', True, 'black')
-        screen.blit(lifo_text, (tube_x + tube_w/2 - 45, tube_y + tube_h + 10))
-
-        #highlight selected queue/stack
-        if (select_rect == i) or (pop_push_mode == 'dequeue_push' and dequeue_destination_type == 'tube' and dequeue_destination_index == i):
-            pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
-
-        #show buttons and arrows
-        if selected and pop_push_mode is None and select_rect == i:
-            pop_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 40, 80, 40])
-            pop_text = font.render('Pop', True, 'black')
-            screen.blit(pop_text, (tube_x + tube_w + 35, tube_y + 50))
-            pygame.draw.line(screen, 'red', (tube_x + tube_w / 2, tube_y - 20), (tube_x + tube_w / 2, tube_y - 50), 5)
-            pygame.draw.polygon(screen, 'red', [(tube_x + tube_w / 2 - 8, tube_y - 50), (tube_x + tube_w / 2 + 8, tube_y - 50), (tube_x + tube_w / 2, tube_y - 65)])
-        if (pop_push_mode in ['push', 'dequeue_push']) and push_tube_index == i:
-            push_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 110, 80, 40])
-            push_text = font.render('Push', True, 'black')
-            screen.blit(push_text, (tube_x + tube_w + 30, tube_y + 120))
-            arrow_x = tube_x + tube_w / 2
-            arrow_start = tube_y - 65
-            arrow_end = tube_y - 35
-
-            # Downward arrow (PUSH)
-            pygame.draw.line(screen, 'green', (arrow_x, arrow_start), (arrow_x, arrow_end), 5)
-            pygame.draw.polygon(
+            pygame.draw.rect(
                 screen,
-                'green',
-                [
-                    (arrow_x - 8, arrow_end),
-                    (arrow_x + 8, arrow_end),
-                    (arrow_x, arrow_end + 12)
-                ]
+                color_choices[tube_cols[i][j]],
+                [tube_x, tube_y + tube_h - 50 * (j + 1), tube_w, 50],
+                0, 3
             )
 
-        tube_boxes.append(pygame.Rect(tube_x, tube_y, tube_w, tube_h))
-
-    #lower row
-    lower_row_y = 360
-    lower_row_offset = left_margin + (spacing / 2 if offset else 0)
-    for i in range(tubes_per_row - (1 if offset else 0)):
-        tube_x = lower_row_offset + i * (tube_w + spacing)
-        tube_y = lower_row_y
-
-        for j in range(len(tube_cols[i + tubes_per_row])):
-            pygame.draw.rect(screen, color_choices[tube_cols[i + tubes_per_row][j]],
-                             [tube_x, tube_y + tube_h - 50 * (j + 1), tube_w, 50], 0, 3)
-
-        pygame.draw.line(screen, 'blue', (tube_x, tube_y), (tube_x, tube_y + tube_h), 5)
-        pygame.draw.line(screen, 'blue', (tube_x + tube_w, tube_y), (tube_x + tube_w, tube_y + tube_h), 5)
-        pygame.draw.line(screen, 'blue', (tube_x, tube_y + tube_h), (tube_x + tube_w, tube_y + tube_h), 5)
+        pygame.draw.rect(screen, 'blue', [tube_x, tube_y, tube_w, tube_h], 5)
 
         lifo_text = label_font.render('Stack (LIFO)', True, 'black')
-        screen.blit(lifo_text, (tube_x + tube_w/2 - 45, tube_y + tube_h + 10))
+        screen.blit(lifo_text, (tube_x + tube_w / 2 - 45, tube_y + tube_h + 10))
 
-        if (select_rect == i + tubes_per_row) or (
-            pop_push_mode == 'dequeue_push' and dequeue_destination_type == 'tube' and dequeue_destination_index == i + tubes_per_row):
+        if select_rect == i:
             pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
-
-        if selected and pop_push_mode is None and select_rect == i + tubes_per_row:
-            pop_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 40, 80, 40])
-            pop_text = font.render('Pop', True, 'black')
-            screen.blit(pop_text, (tube_x + tube_w + 35, tube_y + 50))
-            pygame.draw.line(screen, 'red', (tube_x + tube_w / 2, tube_y - 20), (tube_x + tube_w / 2, tube_y - 50), 5)
-            pygame.draw.polygon(screen, 'red', [(tube_x + tube_w / 2 - 8, tube_y - 50), (tube_x + tube_w / 2 + 8, tube_y - 50), (tube_x + tube_w / 2, tube_y - 65)])
-        if (pop_push_mode in ['push', 'dequeue_push']) and push_tube_index == i + tubes_per_row:
-            push_button_rect = pygame.draw.rect(screen, 'gray', [tube_x + tube_w + 15, tube_y + 110, 80, 40])
-            push_text = font.render('Push', True, 'black')
-            screen.blit(push_text, (tube_x + tube_w + 30, tube_y + 120))
-            arrow_x = tube_x + tube_w / 2
-            arrow_start = tube_y - 65
-            arrow_end = tube_y - 35
-
-            # Downward arrow (PUSH)
-            pygame.draw.line(screen, 'green', (arrow_x, arrow_start), (arrow_x, arrow_end), 5)
-            pygame.draw.polygon(
-                screen,
-                'green',
-                [
-                    (arrow_x - 8, arrow_end),
-                    (arrow_x + 8, arrow_end),
-                    (arrow_x, arrow_end + 12)
-                ]
-            )
 
         tube_boxes.append(pygame.Rect(tube_x, tube_y, tube_w, tube_h))
 
@@ -194,15 +118,15 @@ def draw_queues(queue_list):
     queue_w = 260
     queue_h = 65
     block_w = 65
-    y = 650
-    spacing = 400  # distance between the two queues
-    layout_width = 2 * queue_w + spacing
+    y = 500
+    spacing = 180  # distance between the two queues
+    layout_width = 3 * queue_w + 2 * spacing
     left_margin = (WIDTH - layout_width) / 2  # center horizontally
 
     queue_button_rect = None
     dequeue_button_rect = None
 
-    for idx in range(2):
+    for idx in range(3):
         x = left_margin + idx * (queue_w + spacing)
         pygame.draw.line(screen, 'black', (x, y), (x + queue_w, y), 5)
         pygame.draw.line(screen, 'black', (x, y + queue_h), (x + queue_w, y + queue_h), 5)
