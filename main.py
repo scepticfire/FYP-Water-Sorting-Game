@@ -10,7 +10,7 @@ pygame.init()
 WIDTH = 1600 
 HEIGHT = 900 
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
-pygame.display.set_caption('Water Sort PyGame')
+pygame.display.set_caption('Water Sort PyGame v2.1 NEW BUILD')
 font = pygame.font.Font('freesansbold.ttf', 24)
 label_font = pygame.font.Font('freesansbold.ttf', 20) #Used for LIFO and FIFO labels
 fps = 60
