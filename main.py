@@ -75,6 +75,7 @@ def generate_start():
     return tubes_number, tubes_colors
 
 
+#draw Stack blocks and buttons for pop/push
 def draw_tubes(tubes_num, tube_cols):
     global pop_button_rect, push_button_rect
 
@@ -113,9 +114,7 @@ def draw_tubes(tubes_num, tube_cols):
         if select_rect == i:
             pygame.draw.rect(screen, 'green', [tube_x, tube_y, tube_w, tube_h], 3, 5)
 
-        #===============================
-        #POP buttton (when stack selected)
-        #===============================
+        #button creation and arrows
         if selected and select_rect == i and pop_push_mode is None:
             pop_button_rect = pygame.draw.rect(
                 screen, 'gray',
@@ -140,9 +139,6 @@ def draw_tubes(tubes_num, tube_cols):
                 ]
             )
 
-        #===============================
-        #PUSH BUTTON (after pop)
-        #===============================
         if pop_push_mode in ('push', 'dequeue_push') and select_rect == i:
             push_button_rect = pygame.draw.rect(
                 screen, 'gray',
@@ -300,7 +296,6 @@ def check_victory(stacks, queues):
             return False
 
     return True
-
 
 
 
@@ -528,6 +523,6 @@ while run:
                 victory_button_rect.centery - button_text.get_height() // 2
             )
         )
-        
+
     pygame.display.flip()
 pygame.quit()
